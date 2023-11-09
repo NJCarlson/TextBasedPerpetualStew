@@ -2,24 +2,41 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace TextBasedPerpetualStew
 {
+    //todos:
+    // - input validation & basic game loop
+    // - figure out how to determine frequency of customers / customer mechanics 
+    // - Text graphics and sound FX
+    // - write flavor text
+    // - create and balance default vars
+
+
     internal class GameManager
     {
         public bool gameloopRunning = false;
         private string saveDir;
-        public string tavernName;
+
 
         //saved/loaded vars:
+        public string tavernName;
         private int curTime;
         private int curDay;
         private int playerGold;
-        
-        //todo determine stew ingredients/system
+        private int curStewPrice; // player set price of the stew   
+        private int curMeatCount; // how much meat the player has
+        private int curVeggieCount; // how many veggies the player has
+        private int curStewMeat; //how many meats are in the players stew recipe
+        private int curStewVeggies; // how many veggies are in the player stew recipe
+        private int curStewWater; // how much water is in the player stew recipe - player has infinite water.
 
-       
+        //Player stats
+        private int stewSold;
+        private int maxGold; 
+
         public void Start()
         {
             //load from save if it exists
@@ -57,15 +74,10 @@ namespace TextBasedPerpetualStew
         {
             while (gameloopRunning)
             {
-                //clear screen / print time, day, current gold and current stew price
+                //clear screen / print time, day, current gold
+                //current stew servings left and the set price
 
-                //check if a customer has entered
-
-                //if so determine if they buy stew
-
-                //if they dont, tell the player why
-
-                //if they do, tell the player if they liked it or not
+               //customer events
 
                 //check for player input:
                 //Player Command Options:
@@ -88,6 +100,17 @@ namespace TextBasedPerpetualStew
 
         }
       
+        private void CustomerEvents()
+        {
+            //check if a customer has entered
+
+            //if so determine if they buy stew
+
+            //if they dont, tell the player why
+
+            //if they do, tell the player if they liked it or not
+        }
+
 
 
     }
