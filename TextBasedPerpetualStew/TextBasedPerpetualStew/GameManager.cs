@@ -18,8 +18,8 @@ namespace TextBasedPerpetualStew
     internal class GameManager
     {
         public bool gameloopRunning = false;
-        private string saveDir;
-
+        private string saveDir = AppDomain.CurrentDomain.BaseDirectory;
+        private string savePath = "";
 
         //saved/loaded vars:
         public string tavernName;
@@ -39,23 +39,30 @@ namespace TextBasedPerpetualStew
 
         public void Start()
         {
-            //load from save if it exists
-            //ContinueGame();
-            //else
-            //start new game
-            //StartNewGame();
+            string[] files = System.IO.Directory.GetFiles(saveDir, "*.stew");
+
+            if (files.Length > 0)
+            {
+                savePath = files[0];
+                ContinueGame();
+            }
+            else
+            {
+                StartNewGame();
+            }
+
         }
 
         private void StartNewGame()
         {
-            //load vars from file
 
-            //if no save file exists:
+            //initalize all new vars to default;
+
+            //load vars from file
             Console.WriteLine("Hello, Welcome to Perpetual Stew! A Text based inn keeper simulation game!");
             Console.WriteLine("Please Enter the name of your new Tavern : ");
             string mTavernName = Console.ReadLine(); //do input validation
             tavernName = mTavernName;
-
 
             gameloopRunning = true;
             GameLoop();
@@ -63,7 +70,8 @@ namespace TextBasedPerpetualStew
 
         private void ContinueGame()
         {
-            //initalize all new vars to default;
+            //load all vars from file;
+
 
 
             gameloopRunning = true;
@@ -77,15 +85,17 @@ namespace TextBasedPerpetualStew
                 //clear screen / print time, day, current gold
                 //current stew servings left and the set price
 
-               //customer events
+                //customer events
 
                 //check for player input:
-                //Player Command Options:
-                //[0] Set Stew Ingredients
-                //[1] Buy Ingredients
-                //[2] See Stats
-                //[3] Save & Quit
-                //[4] Restart
+
+                Console.Write(@"
+                Options:
+                [0] Set Stew Ingredients
+                [1] Buy Ingredients
+                [2] See Stats
+                [3] Save & Quit
+                [4] Restart" );
 
                 //check if player has enough stew ingredients for another bowl, if not Game over!
 
