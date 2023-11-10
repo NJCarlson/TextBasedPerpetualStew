@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using System.Threading.Tasks;
+using System.Threading;
+using System.Diagnostics;
+using System.Timers;
 
 namespace TextBasedPerpetualStew
 {
@@ -43,8 +45,7 @@ namespace TextBasedPerpetualStew
         private string savePath = "";
         private StewSaveFile data = new StewSaveFile();
 
-        public string title =
-@"
+        public string title =@"
 #   _______                                           __                         __       
 #  |       \                                         |  \                       |  \      
 #  | $$$$$$$\  ______    ______    ______    ______ _| $$_   __    __   ______  | $$      
@@ -65,6 +66,16 @@ namespace TextBasedPerpetualStew
 #    \$$$$$$     \$$$$  \$$$$$$$  \$$$$$\$$$$                                                                                                                                      
 
 ";
+        public string mainOptions = @"
+Options:
+[0] Set Stew Ingredients
+[1] Buy Ingredients
+[2] See Stats
+[3] Save & Quit
+[4] Restart
+";
+
+        private static System.Timers.Timer eventTimer;
 
 
         public void Start()
@@ -104,15 +115,13 @@ namespace TextBasedPerpetualStew
             }
 
 
-
             gameloopRunning = true;
             GameLoop();
         }
 
         private void ContinueGame()
         {
-            //load all vars from file;
-
+            //todo load all vars from file;
 
 
             gameloopRunning = true;
@@ -121,38 +130,24 @@ namespace TextBasedPerpetualStew
 
         private void GameLoop()
         {
+            // Create a timer with a two second interval.
+            eventTimer = new System.Timers.Timer(30000);
+            eventTimer.Elapsed += EventCheck;
+            eventTimer.AutoReset = true;
+            eventTimer.Enabled = true;
+
             while (gameloopRunning)
             {
-                Console.Clear();
-                Console.Write(title);
-                //todo print time, day, current gold
-                //current stew servings left and the set price
 
-                //write out all logs
-                //todo limit this?
-                if (data.eventLog !=null &&data.eventLog.Count > 0)
-                {
-                    foreach (var log in data.eventLog)
-                    {
-                        Console.WriteLine(log);
-                    }
-                }
+                DrawScreen(); //draws the main screen, event logs, and commands.
 
-                //check for player input:
-                Console.Write(@"
-Options:
-[0] Set Stew Ingredients
-[1] Buy Ingredients
-[2] See Stats
-[3] Save & Quit
-[4] Restart
-");
+
+                //main input check
                 Console.WriteLine("Input : ");
-
+              
                 try
                 {
-                    string val;
-                    val = Console.ReadLine();
+                    string? val = Console.ReadLine();
 
                     int res;
                     res = Convert.ToInt32(val);
@@ -165,7 +160,49 @@ Options:
                     else
                     {
                         data.eventLog.Add("Invalid Input");
+                        continue;
                     }
+
+                    switch (res)
+                    {
+                        case 0:
+                            {
+                                // Set Stew Ingredients
+
+                            }
+                            break;
+                        case 1:
+                            {
+                                //Buy Ingredients
+
+                            }
+                            break;
+                        case 2:
+                            {
+                                //See Stats
+
+                            }
+                            break;
+                        case 3:
+                            {
+                                //Save & Quit
+
+                            }
+                            break;
+                        case 4:
+                            {
+                                //Restart
+
+                            }
+                            break;
+                        default:
+                            {
+                                data.eventLog.Add("Invalid Input");
+                            }
+                            break;
+                    }
+
+
                 }
                 catch (Exception)
                 {
@@ -173,6 +210,7 @@ Options:
                 }
 
 
+               
                 //check if player has enough stew ingredients for another bowl, if not Game over!
 
                 //repeat
@@ -186,18 +224,39 @@ Options:
 
         }
 
-        private void CustomerEvents()
+        /// <summary>
+        /// Clears the console and writes out the title, event logs, and commands.
+        /// </summary>
+        private void DrawScreen()
         {
-            //check if a customer has entered
+            Console.Clear();
+            Console.Write(title);
 
-            //if so determine if they buy stew
+            //write out all logs
+            //todo limit this?
+            if (data.eventLog != null && data.eventLog.Count > 0)
+            {
+                foreach (var log in data.eventLog)
+                {
+                    Console.WriteLine(log);
+                }
+            }
 
-            //if they dont, tell the player why
+            //check for player input:
+            Console.Write(mainOptions);
+        }
 
-            //if they do, tell the player if they liked it or not
+        private void EventCheck(Object source, ElapsedEventArgs e)
+        {
+            //todo determine the event and log the information
+
+            data.eventLog.Add("Event Check hit");
+
+            DrawScreen();
+
         }
 
 
-
+      
     }
 }
