@@ -58,7 +58,6 @@ namespace TextBasedPerpetualStew
 
             //initalize all new vars to default;
 
-            //load vars from file
             Console.WriteLine("Hello, Welcome to Perpetual Stew! A Text based inn keeper simulation game!");
             Console.WriteLine("Please Enter the name of your new Tavern : ");
             string mTavernName = Console.ReadLine(); //do input validation
@@ -82,8 +81,10 @@ namespace TextBasedPerpetualStew
         {
             while (gameloopRunning)
             {
+
                 //clear screen / print time, day, current gold
                 //current stew servings left and the set price
+                Console.Clear();
 
                 //customer events
 
@@ -96,6 +97,20 @@ namespace TextBasedPerpetualStew
                 [2] See Stats
                 [3] Save & Quit
                 [4] Restart" );
+
+                try
+                {
+                    string val;
+                    val = Console.ReadLine();
+
+                    int res;
+                    res = Convert.ToInt32(val);
+                }
+                catch (Exception)
+                {
+                    
+                }
+
 
                 //check if player has enough stew ingredients for another bowl, if not Game over!
 
