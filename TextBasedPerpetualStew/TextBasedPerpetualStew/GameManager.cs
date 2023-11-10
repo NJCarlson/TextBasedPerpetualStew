@@ -14,15 +14,11 @@ namespace TextBasedPerpetualStew
     // - write flavor text
     // - create and balance default vars
 
-
-    internal class GameManager
+    public struct StewSaveFile
     {
-        public bool gameloopRunning = false;
-        private string saveDir = AppDomain.CurrentDomain.BaseDirectory;
-        private string savePath = "";
-
         //saved/loaded vars:
         public string tavernName;
+        public List<string> eventLog;
         private int curTime;
         private int curDay;
         private int playerGold;
@@ -35,10 +31,48 @@ namespace TextBasedPerpetualStew
 
         //Player stats
         private int stewSold;
-        private int maxGold; 
+        private int maxGold;
+    }
+
+
+
+    internal class GameManager
+    {
+        public bool gameloopRunning = false;
+        private string saveDir = AppDomain.CurrentDomain.BaseDirectory;
+        private string savePath = "";
+        private StewSaveFile data = new StewSaveFile();
+
+        public string title =
+@"
+#   _______                                           __                         __       
+#  |       \                                         |  \                       |  \      
+#  | $$$$$$$\  ______    ______    ______    ______ _| $$_   __    __   ______  | $$      
+#  | $$__/ $$ /      \  /      \  /      \  /      \   $$ \ |  \  |  \ |      \ | $$      
+#  | $$    $$|  $$$$$$\|  $$$$$$\|  $$$$$$\|  $$$$$$\$$$$$$ | $$  | $$  \$$$$$$\| $$      
+#  | $$$$$$$ | $$    $$| $$   \$$| $$  | $$| $$    $$| $$ __| $$  | $$ /      $$| $$      
+#  | $$      | $$$$$$$$| $$      | $$__/ $$| $$$$$$$$| $$|  \ $$__/ $$|  $$$$$$$| $$      
+#  | $$       \$$     \| $$      | $$    $$ \$$     \ \$$  $$\$$    $$ \$$    $$| $$      
+#   \$$        \$$$$$$$ \$$      | $$$$$$$   \$$$$$$$  \$$$$  \$$$$$$   \$$$$$$$ \$$      
+#    ______     __               | $$                                                     
+#   /      \   |  \              | $$                                                     
+#  |  $$$$$$\ _| $$_    ______   _\$$ __   __                                             
+#  | $$___\$$|   $$ \  /      \ |  \ |  \ |  \                                            
+#   \$$    \  \$$$$$$ |  $$$$$$\| $$ | $$ | $$                                            
+#   _\$$$$$$\  | $$ __| $$    $$| $$ | $$ | $$                                            
+#  |  \__| $$  | $$|  \ $$$$$$$$| $$_/ $$_/ $$                                            
+#   \$$    $$   \$$  $$\$$     \ \$$   $$   $$                                            
+#    \$$$$$$     \$$$$  \$$$$$$$  \$$$$$\$$$$                                                                                                                                      
+
+";
+
 
         public void Start()
         {
+            data.eventLog = new List<string>();
+            Console.Write(title);
+            System.Threading.Thread.Sleep(1000);
+
             string[] files = System.IO.Directory.GetFiles(saveDir, "*.stew");
 
             if (files.Length > 0)
@@ -60,8 +94,16 @@ namespace TextBasedPerpetualStew
 
             Console.WriteLine("Hello, Welcome to Perpetual Stew! A Text based inn keeper simulation game!");
             Console.WriteLine("Please Enter the name of your new Tavern : ");
+
+            //todo generate a default tavern name
             string mTavernName = Console.ReadLine(); //do input validation
-            tavernName = mTavernName;
+
+            if (!string.IsNullOrEmpty(mTavernName))
+            {
+                data.tavernName = mTavernName;
+            }
+
+
 
             gameloopRunning = true;
             GameLoop();
@@ -81,22 +123,31 @@ namespace TextBasedPerpetualStew
         {
             while (gameloopRunning)
             {
-
-                //clear screen / print time, day, current gold
-                //current stew servings left and the set price
                 Console.Clear();
+                Console.Write(title);
+                //todo print time, day, current gold
+                //current stew servings left and the set price
 
-                //customer events
+                //write out all logs
+                //todo limit this?
+                if (data.eventLog !=null &&data.eventLog.Count > 0)
+                {
+                    foreach (var log in data.eventLog)
+                    {
+                        Console.WriteLine(log);
+                    }
+                }
 
                 //check for player input:
-
                 Console.Write(@"
-                Options:
-                [0] Set Stew Ingredients
-                [1] Buy Ingredients
-                [2] See Stats
-                [3] Save & Quit
-                [4] Restart" );
+Options:
+[0] Set Stew Ingredients
+[1] Buy Ingredients
+[2] See Stats
+[3] Save & Quit
+[4] Restart
+");
+                Console.WriteLine("Input : ");
 
                 try
                 {
@@ -105,10 +156,20 @@ namespace TextBasedPerpetualStew
 
                     int res;
                     res = Convert.ToInt32(val);
+
+                    if (res > -1 && res <5)
+                    {
+                        //valid
+                        data.eventLog.Add("Command Recieved " + res);
+                    }
+                    else
+                    {
+                        data.eventLog.Add("Invalid Input");
+                    }
                 }
                 catch (Exception)
                 {
-                    
+                    data.eventLog.Add("Invalid Input");
                 }
 
 
@@ -116,7 +177,7 @@ namespace TextBasedPerpetualStew
 
                 //repeat
             }
-          
+
         }
 
         private void SaveGame()
@@ -124,7 +185,7 @@ namespace TextBasedPerpetualStew
             //save vars to file;
 
         }
-      
+
         private void CustomerEvents()
         {
             //check if a customer has entered
