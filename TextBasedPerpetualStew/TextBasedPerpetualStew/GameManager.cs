@@ -16,6 +16,7 @@ namespace TextBasedPerpetualStew
     // - write flavor text
     // - create and balance default vars
 
+    [Serializable]
     public struct StewSaveFile
     {
         //saved/loaded vars:
@@ -41,6 +42,7 @@ namespace TextBasedPerpetualStew
     internal class GameManager
     {
         public bool gameloopRunning = false;
+        public bool paused = false;
         private string saveDir = AppDomain.CurrentDomain.BaseDirectory;
         private string savePath = "";
         private StewSaveFile data = new StewSaveFile();
@@ -73,6 +75,19 @@ Options:
 [2] See Stats
 [3] Save & Quit
 [4] Restart
+";
+        public string BuyIngredientOptions = @"
+Options:
+[1] Buy Meat
+[2] Buy Veggies
+[3] Exit
+";
+        public string SetIngredientOptions = @"
+Options:
+[1] Set Meat Quantity
+[2] Set Veggie Quantity
+[3] Set Water Quantity
+[4] Exit
 ";
 
         private static System.Timers.Timer eventTimer;
@@ -130,7 +145,8 @@ Options:
 
         private void GameLoop()
         {
-            // Create a timer with a two second interval.
+            // Create a timer for events,
+            // so player doesnt have to input for game to update
             eventTimer = new System.Timers.Timer(30000);
             eventTimer.Elapsed += EventCheck;
             eventTimer.AutoReset = true;
@@ -142,74 +158,7 @@ Options:
                 DrawScreen(); //draws the main screen, event logs, and commands.
 
 
-                //main input check
-                Console.WriteLine("Input : ");
-              
-                try
-                {
-                    string? val = Console.ReadLine();
-
-                    int res;
-                    res = Convert.ToInt32(val);
-
-                    if (res > -1 && res <5)
-                    {
-                        //valid
-                        data.eventLog.Add("Command Recieved " + res);
-                    }
-                    else
-                    {
-                        data.eventLog.Add("Invalid Input");
-                        continue;
-                    }
-
-                    switch (res)
-                    {
-                        case 0:
-                            {
-                                // Set Stew Ingredients
-
-                            }
-                            break;
-                        case 1:
-                            {
-                                //Buy Ingredients
-
-                            }
-                            break;
-                        case 2:
-                            {
-                                //See Stats
-
-                            }
-                            break;
-                        case 3:
-                            {
-                                //Save & Quit
-
-                            }
-                            break;
-                        case 4:
-                            {
-                                //Restart
-
-                            }
-                            break;
-                        default:
-                            {
-                                data.eventLog.Add("Invalid Input");
-                            }
-                            break;
-                    }
-
-
-                }
-                catch (Exception)
-                {
-                    data.eventLog.Add("Invalid Input");
-                }
-
-
+               
                
                 //check if player has enough stew ingredients for another bowl, if not Game over!
 
@@ -218,6 +167,9 @@ Options:
 
         }
 
+        /// <summary>
+        /// Save all game vars to text file
+        /// </summary>
         private void SaveGame()
         {
             //save vars to file;
@@ -246,13 +198,219 @@ Options:
             Console.Write(mainOptions);
         }
 
+        private void CheckPlayerInput()
+        {
+            //main input check
+            Console.WriteLine("Input : ");
+
+            try
+            {
+                string? val = Console.ReadLine();
+
+                int res;
+                res = Convert.ToInt32(val);
+
+                if (res > -1 && res < 5)
+                {
+                    //valid
+                    data.eventLog.Add("Command Recieved " + res);
+                }
+                else
+                {
+                    data.eventLog.Add("Invalid Input");
+                    return;
+                }
+
+                // pause timed events to do player input;
+                paused = true;
+
+                switch (res)
+                {
+                    case 0:
+                        {
+                            // Set Stew Ingredients
+                            Console.Clear();
+                            Console.Write(title);
+                            Console.Write(SetIngredientOptions);
+                            Console.WriteLine("Input : ");
+
+                            val = Console.ReadLine();
+                            res = Convert.ToInt32(val);
+
+                            if (res > -1 && res < 5)
+                            {
+                                //valid
+                                data.eventLog.Add("Command Recieved " + res);
+                            }
+                            else
+                            {
+                                data.eventLog.Add("Invalid Input");
+                                return;
+                            }
+
+                            switch (res)
+                            {
+                                case 0:
+                                    break;
+                                case 1:
+                                    break;
+                                case 2:
+                                    break;
+                                case 3:
+                                    break;
+                                case 4:
+                                    break;
+                                default:
+                                    break;
+                            }
+
+
+                        }
+                        break;
+                    case 1:
+                        {
+                            //Buy Ingredients
+                            Console.Clear();
+                            Console.Write(title);
+                            Console.Write(BuyIngredientOptions);
+                            Console.WriteLine("Input : ");
+
+                            val = Console.ReadLine();
+                            res = Convert.ToInt32(val);
+
+                            if (res > -1 && res < 5)
+                            {
+                                //valid
+                                data.eventLog.Add("Command Recieved " + res);
+                            }
+                            else
+                            {
+                                data.eventLog.Add("Invalid Input");
+                                return;
+                            }
+
+                            switch (res)
+                            {
+                                case 0:
+                                    break;
+                                case 1:
+                                    break;
+                                case 2:
+                                    break;
+                                case 3:
+                                    break;
+                                case 4:
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                        }
+                        break;
+                    case 2:
+                        {
+                            //See Stats
+
+                        }
+                        break;
+                    case 3:
+                        {
+                            //Save & Quit
+                            Console.Clear();
+                            Console.Write(title);
+                            Console.WriteLine("Are you sure you want to save and Exit?");
+                            Console.WriteLine("Input : ");
+                            Console.ReadLine();
+
+                            val = Console.ReadLine();
+                            res = Convert.ToInt32(val);
+
+                            if (res > -1 && res < 5)
+                            {
+                                //valid
+                                data.eventLog.Add("Command Recieved " + res);
+                            }
+                            else
+                            {
+                                data.eventLog.Add("Invalid Input");
+                                return;
+                            }
+
+                            switch (res)
+                            {
+                                case 0:
+                                    break;
+                                case 1:
+                                    break;
+                            }
+
+                        }
+                        break;
+                    case 4:
+                        {
+                            //Restart - ask player if they are sure they want to delete file
+                            Console.Clear();
+                            Console.Write(title);
+                            Console.WriteLine("Are you sure you want to restart? This can not be undone.");
+                            Console.WriteLine("Input : ");
+                            Console.ReadLine();
+
+
+                            val = Console.ReadLine();
+                            res = Convert.ToInt32(val);
+
+                            if (res > -1 && res < 5)
+                            {
+                                //valid
+                                data.eventLog.Add("Command Recieved " + res);
+                            }
+                            else
+                            {
+                                data.eventLog.Add("Invalid Input");
+                                return;
+                            }
+
+
+
+                            switch (res)
+                            {
+                                case 0:
+                                    break;
+                                case 1:
+                                    break;
+                            }
+
+
+                        }
+                        break;
+                    default:
+                        {
+                            data.eventLog.Add("Invalid Input");
+                        }
+                        break;
+                }
+
+
+            }
+            catch (Exception)
+            {
+                data.eventLog.Add("Invalid Input");
+            }
+
+            paused = false;
+
+        }
+
         private void EventCheck(Object source, ElapsedEventArgs e)
         {
             //todo determine the event and log the information
 
-            data.eventLog.Add("Event Check hit");
+            if (!paused)
+            {
+                data.eventLog.Add("Event Check hit");
 
-            DrawScreen();
+                DrawScreen();
+            }
 
         }
 
