@@ -85,16 +85,16 @@ Options:
 ";
         public string BuyIngredientOptions = @"
 Options:
-[1] Buy Meat
-[2] Buy Veggies
-[3] Exit
+[0] Buy Meat
+[1] Buy Veggies
+[2] Exit
 ";
         public string SetIngredientOptions = @"
 Options:
-[1] Set Meat Quantity
-[2] Set Veggie Quantity
-[3] Set Water Quantity
-[4] Exit
+[0] Set Meat Quantity
+[1] Set Veggie Quantity
+[2] Set Water Quantity
+[3] Exit
 ";
 
         private static System.Timers.Timer eventTimer = new System.Timers.Timer();
@@ -124,17 +124,46 @@ Options:
 
             //initalize all new vars to default;
 
-            Console.WriteLine("Hello, Welcome to Perpetual Stew! A Text based inn keeper simulation game!");
-            Console.WriteLine("Please Enter the name of your new Tavern : ");
+            
 
-            //todo generate a default tavern name
-            string mTavernName = Console.ReadLine(); //do input validation
+            data = new StewSaveFile();
+            data.eventLog = new List<string>();
+            data.curStewWater = 1;
+            data.curStewVeggies = 1;
+            data.curStewMeat = 1;
+            data.curMeatCount = 10;
+            data.curVeggieCount = 10;
+            data.playerGold = 10;
 
-            if (!string.IsNullOrEmpty(mTavernName))
+            bool validNameFound = false;
+            bool invalidInput = false;
+
+            while (!validNameFound)
             {
-                data.tavernName = mTavernName;
-            }
+                Console.Clear();
+                Console.WriteLine(title);
+                Console.WriteLine("Hello, Welcome to Perpetual Stew! A Text based inn keeper simulation game!");
 
+                if (invalidInput)
+                {
+                    Console.WriteLine("Invalid name entered!");
+                }
+
+                Console.WriteLine("Please Enter the name of your new Tavern : ");
+
+                //todo generate a default tavern name?
+                var mTavernName = Console.ReadLine(); //do input validation
+
+                if (!string.IsNullOrEmpty(mTavernName))
+                {
+                    data.tavernName = mTavernName;
+                    validNameFound = true;
+                }
+                else
+                {
+                    invalidInput = true;
+                }
+            }
 
             gameloopRunning = true;
             GameLoop();
@@ -186,8 +215,9 @@ Options:
             Console.Clear();
             Console.Write(title);
             Console.WriteLine("Are you sure you want to save and Exit?");
+            Console.WriteLine("[0] No");
+            Console.WriteLine("[1] Yes");
             Console.WriteLine("Input : ");
-            Console.ReadLine();
 
             var val = Console.ReadLine();
             int res = Convert.ToInt32(val);
@@ -260,6 +290,15 @@ Options:
         {
             Console.Clear();
             Console.Write(title);
+            Console.WriteLine("-----------------------------------------");
+            Console.WriteLine(data.tavernName + " Stew Recipe: ");
+            Console.WriteLine("Meat: " + data.curStewMeat);
+            Console.WriteLine("Veggies: " + data.curStewVeggies);
+            Console.WriteLine("Water: " + data.curStewWater);
+            Console.WriteLine("-----------------------------------------");
+            Console.WriteLine("Day " + data.curDay + " Time " + data.curTime);
+            Console.WriteLine(data.playerGold + " Gold");
+            Console.WriteLine("Log: ");
 
             //write out all logs
             //todo limit this?
@@ -270,15 +309,16 @@ Options:
                     Console.WriteLine(log);
                 }
             }
+            Console.WriteLine("-----------------------------------------");
 
-            //check for player input:
+            //Write out main menu options
             Console.Write(mainOptions);
         }
 
         private void MainMenuInput()
         {
             //main input check
-            Console.WriteLine("Input : ");
+            Console.Write("Input : ");
 
             try
             {
@@ -289,8 +329,10 @@ Options:
 
                 if (res > -1 && res < 5)
                 {
-                    //valid
-                    data.eventLog.Add("Command Recieved " + res);
+                    //input was valid
+
+                    //uncomment this for debug logging of commands:
+                    // data.eventLog.Add("Command Recieved " + res);
                 }
                 else
                 {
@@ -305,12 +347,13 @@ Options:
                 {
                     case 0:
                         {
-                            BuyIngredientInput();
+                            SetIngrediens();
                         }
                         break;
                     case 1:
                         {
-                            SetIngredientInput();
+                            BuyIngredients();
+                        
                         }
                         break;
                     case 2:
@@ -348,23 +391,38 @@ Options:
 
         }
 
-        private void BuyIngredientInput()
+        private void BuyIngredients()
         {
             bool shopping = true;
+            List<string> shopNotifications = new List<string>();
             while (shopping)
             {
                 //Buy Ingredients
                 Console.Clear();
                 Console.Write(title);
+                Console.WriteLine("----------------------------------------------------");
+                Console.WriteLine("Inventory : ");
+                Console.WriteLine(data.playerGold + " Gold");
+                Console.WriteLine("Meat: " + data.curMeatCount);
+                Console.WriteLine("Veggies: " + data.curVeggieCount);
+                Console.WriteLine("----------------------------------------------------");
                 Console.WriteLine("Meat costs 1 gold");
                 Console.WriteLine("Vegtables costs 1 gold");
+                Console.WriteLine("----------------------------------------------------");
                 Console.Write(BuyIngredientOptions);
+
+                //write notifications:
+                foreach (var item in shopNotifications)
+                {
+                    Console.WriteLine(item);
+                }
+
                 Console.WriteLine("Input : ");
 
                 var val = Console.ReadLine();
                 int res = Convert.ToInt32(val);
 
-                if (res > -1 && res < 5)
+                if (res > -1 && res < 3)
                 {
                     //valid
                     data.eventLog.Add("Command Recieved " + res);
@@ -391,7 +449,7 @@ Options:
                             }
                             else
                             {
-                                Console.WriteLine("You don't have enough gold!!");
+                                shopNotifications.Add("You don't have enough gold!!");
                             }
                         }
                         break;
@@ -409,7 +467,7 @@ Options:
                             }
                             else
                             {
-                                Console.WriteLine("You don't have enough gold!!");
+                                shopNotifications.Add("You don't have enough gold!!");
                             }
                         }
                         break;
@@ -417,25 +475,38 @@ Options:
                         shopping = false;
                         break;
                 }
+
+                SaveGame();
             }
 
         }
 
-        private void SetIngredientInput()
+        private void SetIngrediens()
         {
             bool cooking = true;
+            List<string> cookingNotifications = new List<string>();
             while (cooking)
             {
-
                 // Set Stew Ingredients
                 Console.Clear();
                 Console.Write(title);
+                Console.WriteLine("-----------------------------------------");
+                Console.WriteLine( data.tavernName + " Stew Recipe: ");
+                Console.WriteLine("Meat: " + data.curStewMeat);
+                Console.WriteLine("Veggies: " + data.curStewVeggies);
+                Console.WriteLine("Water: " + data.curStewWater);
+                Console.WriteLine("-----------------------------------------");
                 Console.Write(SetIngredientOptions);
+
+                foreach (var item in cookingNotifications)
+                {
+                    Console.WriteLine(item);
+                }
 
                 var val = Console.ReadLine();
                 int res = Convert.ToInt32(val);
 
-                if (res > -1 && res < 5)
+                if (res > -1 && res < 4)
                 {
                     //valid
                     data.eventLog.Add("Command Recieved " + res);
@@ -456,8 +527,14 @@ Options:
 
                             var quantityStr = Console.ReadLine();
                             int quantity = Convert.ToInt32(quantityStr);
-
-                            data.curStewMeat = quantity;
+                            if (quantity > data.curMeatCount)
+                            {
+                                cookingNotifications.Add("You don't even have that many!");
+                            }
+                            else
+                            {
+                                data.curStewMeat = quantity;
+                            }
 
                         }
                         break;
@@ -470,7 +547,16 @@ Options:
                             var quantityStr = Console.ReadLine();
                             int quantity = Convert.ToInt32(quantityStr);
 
-                            data.curStewVeggies = quantity;
+                            if (quantity > data.curVeggieCount)
+                            {
+                                cookingNotifications.Add("You don't even have that many!");
+                            }
+                            else
+                            {
+                                data.curStewVeggies = quantity;
+                            }
+
+                          
                         }
                         break;
                     case 2:
@@ -494,6 +580,8 @@ Options:
                     default:
                         break;
                 }
+
+                SaveGame();
             }
 
 
@@ -516,7 +604,5 @@ Options:
         {
 
         }
-
-
     }
 }
