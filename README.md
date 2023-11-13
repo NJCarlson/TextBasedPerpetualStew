@@ -11,5 +11,10 @@
 - Saving and loading 
 - Day/Time system
 - Customers & Random events
+- GAME OVER screen + end game condition
+- New Game Tutorial
 - music/sound FX
 - MORE Ascii art!!
+- Improve input system
+- Firewood / fire management mechanics
+- More ingredients than the basic meat, veggies, and water.
