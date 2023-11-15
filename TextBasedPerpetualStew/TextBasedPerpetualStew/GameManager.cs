@@ -250,10 +250,8 @@ Options:
                 {
                     using (var reader = new BinaryReader(stream, Encoding.UTF8, false))
                     {
-                        //reader.ReadSingle();
-                        //reader.ReadString();
-                        //reader.ReadInt32();
-                        //reader.ReadBoolean();
+ 
+                        data.eventLog = new List<string>();
 
                         data.tavernName = reader.ReadString();
                         data.playerGold = reader.ReadInt32();
