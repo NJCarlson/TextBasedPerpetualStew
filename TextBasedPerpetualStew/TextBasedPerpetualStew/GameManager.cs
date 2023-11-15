@@ -6,6 +6,8 @@ using System.IO;
 using System.Threading;
 using System.Diagnostics;
 using System.Timers;
+using static System.Net.Mime.MediaTypeNames;
+using System.Reflection;
 
 namespace TextBasedPerpetualStew
 {
@@ -15,8 +17,6 @@ namespace TextBasedPerpetualStew
     // - Text graphics and sound FX
     // - write flavor text
     // - create and balance default vars
-
-    [Serializable]
 
     /// <summary>
     /// Game save file data
@@ -110,7 +110,7 @@ Options:
             if (files.Length > 0)
             {
                 savePath = files[0];
-                ContinueGame();
+                ContinueGame(savePath);
             }
             else
             {
@@ -123,11 +123,10 @@ Options:
         {
 
             //initalize all new vars to default;
-
-            
-
             data = new StewSaveFile();
             data.eventLog = new List<string>();
+            data.curDay = 1;
+            data.curTime = 0;
             data.curStewWater = 1;
             data.curStewVeggies = 1;
             data.curStewMeat = 1;
@@ -169,10 +168,10 @@ Options:
             GameLoop();
         }
 
-        private void ContinueGame()
+        private void ContinueGame(string savePath)
         {
             //todo load all vars from file;
-
+            LoadStewFile(savePath);
 
             gameloopRunning = true;
             GameLoop();
@@ -194,6 +193,15 @@ Options:
                 MainMenuInput();
 
                 //check if player has enough stew ingredients for another bowl, if not Game over!
+
+                if (data.curMeatCount < data.curStewMeat || data.curVeggieCount < data.curStewVeggies)
+                {
+                    Console.WriteLine("Game Over!");
+                }
+
+                
+                SaveGame();
+
             }
 
         }
@@ -203,9 +211,64 @@ Options:
         /// </summary>
         private void SaveGame()
         {
+            savePath = AppDomain.CurrentDomain.BaseDirectory + data.tavernName + ".stew";
+
+            if (File.Exists(savePath))
+            {
+                File.Delete(savePath);
+            }
+
             //todo save vars to file;
+            using (var stream = File.Open(savePath, FileMode.Create))
+            {
+                using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
+                {
+                    writer.Write(data.tavernName);
+                    writer.Write(data.playerGold);
+                    writer.Write(data.curDay);
+                    writer.Write(data.curTime);
+                    writer.Write(data.curStewMeat);
+                    writer.Write(data.curStewVeggies);
+                    writer.Write(data.curStewWater);
+                    writer.Write(data.curMeatCount);
+                    writer.Write(data.curVeggieCount);
+                    writer.Write(data.curStewPrice);
+                }
 
+            }
 
+            
+        }
+
+        private void LoadStewFile(string savePath)
+        {
+            data = new StewSaveFile();
+
+            if (File.Exists(savePath))
+            {
+                using (var stream = File.Open(savePath, FileMode.Open))
+                {
+                    using (var reader = new BinaryReader(stream, Encoding.UTF8, false))
+                    {
+                        //reader.ReadSingle();
+                        //reader.ReadString();
+                        //reader.ReadInt32();
+                        //reader.ReadBoolean();
+
+                        data.tavernName = reader.ReadString();
+                        data.playerGold = reader.ReadInt32();
+                        data.curDay = reader.ReadInt32();
+                        data.curTime = reader.ReadInt32();
+                        data.curStewMeat = reader.ReadInt32();
+                        data.curStewVeggies = reader.ReadInt32();
+                        data.curStewWater = reader.ReadInt32();
+                        data.curMeatCount = reader.ReadInt32();
+                        data.curVeggieCount = reader.ReadInt32();
+                        data.curStewPrice = reader.ReadInt32();
+
+                    }
+                }
+            }
         }
 
         private void SaveAndQuit()
@@ -257,6 +320,8 @@ Options:
             Console.Clear();
             Console.Write(title);
             Console.WriteLine("Are you sure you want to restart? This can not be undone.");
+            Console.WriteLine("[0] NO ");
+            Console.WriteLine("[1] YES ");
             Console.WriteLine("Input : ");
             Console.ReadLine();
             var val = Console.ReadLine();
@@ -274,8 +339,24 @@ Options:
             switch (res)
             {
                 case 0:
+                    {
+                        return;
+                    }
                     break;
                 case 1:
+                    {
+                        if (File.Exists(savePath))
+                        {
+                            File.Delete(savePath);
+                        }
+
+                        // Starts a new instance of the program itself
+                        var fileName = Assembly.GetExecutingAssembly().Location;
+                        System.Diagnostics.Process.Start(fileName);
+
+                        // Closes the current process
+                        Environment.Exit(0);
+                    }
                     break;
             }
 
