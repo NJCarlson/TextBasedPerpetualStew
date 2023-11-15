@@ -6,13 +6,11 @@ using System.IO;
 using System.Threading;
 using System.Diagnostics;
 using System.Timers;
-using static System.Net.Mime.MediaTypeNames;
 using System.Reflection;
 
 namespace TextBasedPerpetualStew
 {
     //todos:
-    // - input validation & basic game loop
     // - figure out how to determine frequency of customers / customer mechanics 
     // - Text graphics and sound FX
     // - write flavor text
@@ -44,8 +42,6 @@ namespace TextBasedPerpetualStew
         public int maxGold;
     }
 
-
-
     internal class GameManager
     {
         public bool gameloopRunning = false;
@@ -53,6 +49,7 @@ namespace TextBasedPerpetualStew
         private string saveDir = AppDomain.CurrentDomain.BaseDirectory;
         private string savePath = "";
         private StewSaveFile data = new StewSaveFile();
+        private Random rand = new Random();
 
         public string title = @"
 #   _______                                           __                         __       
@@ -94,7 +91,8 @@ Options:
 [0] Set Meat Quantity
 [1] Set Veggie Quantity
 [2] Set Water Quantity
-[3] Exit
+[3] Set Stew Price
+[4] Exit
 ";
 
         private static System.Timers.Timer eventTimer = new System.Timers.Timer();
@@ -133,6 +131,7 @@ Options:
             data.curMeatCount = 10;
             data.curVeggieCount = 10;
             data.playerGold = 10;
+            data.curStewPrice = 1;
 
             bool validNameFound = false;
             bool invalidInput = false;
@@ -164,6 +163,7 @@ Options:
                 }
             }
 
+            SaveGame();
             gameloopRunning = true;
             GameLoop();
         }
@@ -181,27 +181,26 @@ Options:
         {
             // Create a timer for events,
             // so player doesnt have to input for game to update
-            eventTimer = new System.Timers.Timer(30000);
+            eventTimer = new System.Timers.Timer(10000);
             eventTimer.Elapsed += CustomerEventCheck;
             eventTimer.AutoReset = true;
             eventTimer.Enabled = true;
 
             while (gameloopRunning)
             {
+
                 DrawMainScreen(); //draws the main screen, event logs, and commands.
 
                 MainMenuInput();
 
                 //check if player has enough stew ingredients for another bowl, if not Game over!
 
-                if (data.curMeatCount < data.curStewMeat || data.curVeggieCount < data.curStewVeggies)
+                if (data.curMeatCount- data.curStewMeat <= 0 || data.curVeggieCount-data.curStewVeggies <= 0)
                 {
-                    Console.WriteLine("Game Over!");
+                    data.eventLog.Add("You are running out of ingredients! Buy more!");
                 }
 
                 
-                SaveGame();
-
             }
 
         }
@@ -321,10 +320,9 @@ Options:
             Console.WriteLine("[0] NO ");
             Console.WriteLine("[1] YES ");
             Console.WriteLine("Input : ");
-            Console.ReadLine();
             var val = Console.ReadLine();
             int res = Convert.ToInt32(val);
-            if (res > -1 && res < 5)
+            if (res > -1 && res < 2)
             {
                 //valid
                 data.eventLog.Add("Command Recieved " + res);
@@ -343,17 +341,15 @@ Options:
                     break;
                 case 1:
                     {
+                        gameloopRunning = false;
+
                         if (File.Exists(savePath))
                         {
                             File.Delete(savePath);
                         }
 
-                        // Starts a new instance of the program itself
-                        var fileName = Assembly.GetExecutingAssembly().Location;
-                        System.Diagnostics.Process.Start(fileName);
-
-                        // Closes the current process
-                        Environment.Exit(0);
+                        Console.Clear();
+                        Start();
                     }
                     break;
             }
@@ -369,14 +365,19 @@ Options:
         {
             Console.Clear();
             Console.Write(title);
-            Console.WriteLine("-----------------------------------------");
-            Console.WriteLine(data.tavernName + " Stew Recipe: ");
+            Console.WriteLine("----------------------------------------------------");
+            Console.WriteLine("Inventory : ");
+            Console.WriteLine(data.playerGold + " Gold");
+            Console.WriteLine("Meat: " + data.curMeatCount);
+            Console.WriteLine("Veggies: " + data.curVeggieCount);
+            Console.WriteLine("----------------------------------------------------");
+            Console.WriteLine(data.tavernName + " Stew: ");
             Console.WriteLine("Meat: " + data.curStewMeat);
             Console.WriteLine("Veggies: " + data.curStewVeggies);
             Console.WriteLine("Water: " + data.curStewWater);
-            Console.WriteLine("-----------------------------------------");
+            Console.WriteLine("----------------------------------------------------");
+            Console.WriteLine("Stew Price: " + data.curStewPrice);
             Console.WriteLine("Day " + data.curDay + " Time " + data.curTime);
-            Console.WriteLine(data.playerGold + " Gold");
             Console.WriteLine("Log: ");
 
             //write out all logs
@@ -388,7 +389,7 @@ Options:
                     Console.WriteLine(log);
                 }
             }
-            Console.WriteLine("-----------------------------------------");
+            Console.WriteLine("----------------------------------------------------");
 
             //Write out main menu options
             Console.Write(mainOptions);
@@ -571,6 +572,7 @@ Options:
                 Console.Write(title);
                 Console.WriteLine("-----------------------------------------");
                 Console.WriteLine( data.tavernName + " Stew Recipe: ");
+                Console.WriteLine("Price: " + data.curStewPrice);
                 Console.WriteLine("Meat: " + data.curStewMeat);
                 Console.WriteLine("Veggies: " + data.curStewVeggies);
                 Console.WriteLine("Water: " + data.curStewWater);
@@ -585,7 +587,7 @@ Options:
                 var val = Console.ReadLine();
                 int res = Convert.ToInt32(val);
 
-                if (res > -1 && res < 4)
+                if (res > -1 && res < 5)
                 {
                     //valid
                     data.eventLog.Add("Command Recieved " + res);
@@ -652,6 +654,17 @@ Options:
                         break;
                     case 3:
                         {
+                            Console.WriteLine("Stew Price : ");
+
+
+                            var quantityStr = Console.ReadLine();
+                            int quantity = Convert.ToInt32(quantityStr);
+
+                            data.curStewPrice = quantity;
+                        }
+                        break;
+                    case 4:
+                        {
                             //exit
                             cooking = false;
                         }
@@ -672,11 +685,56 @@ Options:
 
             if (!paused)
             {
-                data.eventLog.Add("Event Check hit");
+          
+                //do event
+                data.eventLog.Add("A customer enters and purchases a stew!");
+                data.curMeatCount -= data.curStewMeat;
+                data.curVeggieCount -= data.curStewVeggies;
+                data.playerGold += data.curStewPrice;
 
                 DrawMainScreen();
+
+
+                if (data.curMeatCount <= 0)
+                {
+                    paused = true;
+                    Console.WriteLine("Game over! You ran out of meat!");
+                    Console.WriteLine("Press enter to restart. . . ");
+                    Console.ReadLine();
+                    GameOverRestart();  
+                }
+
+
+                if (data.curVeggieCount <= 0)
+                {
+                    paused = true;
+                    Console.WriteLine("Game over! You ran out of Veggies!");
+                    Console.WriteLine("Press enter to restart. . . ");
+                    Console.ReadLine();
+                    GameOverRestart();
+                }
+
+
+                SaveGame();
+            }
+            else
+            {
+                return;
             }
 
+        }
+
+        private void GameOverRestart()
+        {
+            gameloopRunning = false;
+            Console.Clear();
+
+            if (File.Exists(savePath))
+            {
+                File.Delete(savePath);
+            }
+
+            Start();
         }
 
         private void DrawStats()
